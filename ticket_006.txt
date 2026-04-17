@@ -1,0 +1,42 @@
+Ticket: SHOP-156
+Title: Choose deployment strategy — ECS vs EKS vs plain EC2
+Type: Architecture Decision
+Status: Done
+Sprint: Sprint 8
+Assignee: Arjun Patel
+Date: 2025-11-01
+
+Description:
+Moving from Docker Compose on EC2 to proper container orchestration.
+
+Comments:
+
+Arjun Patel (Nov 2):
+Options:
+1. ECS Fargate: Serverless containers, no instance management
+2. EKS: Full Kubernetes, most flexible, most complex
+3. EC2 with Docker Compose: Cheapest, simplest, least scalable
+
+My recommendation: ECS Fargate.
+
+EKS is overkill for 3 services. The operational overhead of managing 
+a Kubernetes cluster (upgrades, node groups, networking) doesn't make 
+sense for a team of 5. If we grow to 15+ services, we should revisit.
+
+EC2 with Docker Compose is what we have now. It works but scaling 
+is manual and we had downtime during the last deployment.
+
+ECS Fargate gives us:
+- Auto-scaling based on CPU/memory
+- No instance management
+- Integrates with ALB for load balancing
+- Blue-green deployment support
+- Cost: pay only for running containers
+
+Rahul Sharma (Nov 3):
+Agreed on ECS Fargate. Keep it simple. We can always migrate to 
+EKS later if we outgrow ECS. The important thing is our services 
+are containerized — the orchestrator is swappable.
+
+Decision: ECS Fargate. Terraform for infrastructure as code. 
+See PR #50.

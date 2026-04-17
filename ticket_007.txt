@@ -1,0 +1,39 @@
+Ticket: SHOP-189
+Title: Implement proper error handling strategy across services
+Type: Task
+Status: Done
+Sprint: Sprint 10
+Assignee: Rahul Sharma
+Date: 2025-12-10
+
+Description:
+Error handling is inconsistent across services. Some return 500 
+with stack traces, others return custom error objects. Need a 
+standard approach.
+
+Comments:
+
+Rahul Sharma (Dec 10):
+Implementing a standardized error response format across all services:
+
+{
+  "error": {
+    "code": "ORDER_NOT_FOUND",
+    "message": "Order with ID 12345 does not exist",
+    "correlationId": "uuid-here",
+    "timestamp": "2025-12-10T14:30:00Z"
+  }
+}
+
+Rules:
+- Never expose stack traces in production responses
+- Always include correlation ID for debugging
+- Use specific error codes (not just HTTP status codes)
+- Log full stack trace server-side, return user-friendly message
+- 4xx errors: client's fault, include what they need to fix
+- 5xx errors: our fault, generic message, full details in logs
+
+Created a shared @ControllerAdvice in the common module that all 
+services extend.
+
+Decision: Standardized error format deployed across all services.

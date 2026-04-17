@@ -1,0 +1,36 @@
+Ticket: SHOP-112
+Title: Database choice — PostgreSQL vs MySQL vs MongoDB
+Type: Architecture Decision
+Status: Done
+Sprint: Sprint 1
+Assignee: Rahul Sharma
+Date: 2025-08-03
+
+Description:
+Choose primary database for all services.
+
+Comments:
+
+Rahul Sharma (Aug 4):
+Requirements:
+- ACID transactions (critical for payments and inventory)
+- JSONB support for flexible order metadata
+- Good performance for both reads and writes
+- Team familiarity
+
+Evaluation:
+- PostgreSQL: ACID, JSONB support, excellent query optimizer, 
+  team has experience, great ecosystem
+- MySQL: ACID, limited JSON support, faster for simple reads 
+  but weaker for complex queries
+- MongoDB: Flexible schema, but no ACID across collections, 
+  would need workarounds for inventory consistency
+
+Priya Nair (Aug 4):
+Strong vote for PostgreSQL. The JSONB support is important — 
+order metadata varies by product type (clothing has size/color, 
+electronics has warranty info). With PostgreSQL we can keep a 
+relational schema for core fields and JSONB for flexible metadata.
+
+Decision: PostgreSQL. Each service gets its own database instance 
+for data isolation. Using Flyway for migrations.

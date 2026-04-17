@@ -1,0 +1,44 @@
+Ticket: SHOP-101
+Title: Evaluate message queue options for async communication
+Type: Spike
+Status: Done
+Sprint: Sprint 3
+Assignee: Rahul Sharma
+Date: 2025-08-15
+
+Description:
+We need async communication between order-service and payment-service.
+Evaluate RabbitMQ, Kafka, and AWS SQS.
+
+Comments:
+
+Rahul Sharma (Aug 16):
+Tested all three options. Here's my comparison:
+
+RabbitMQ:
+- Pros: Simple, lightweight, good for task queues
+- Cons: No message replay, limited throughput for our flash sale needs, 
+  single consumer per queue (need work queues for multiple consumers)
+
+Apache Kafka:
+- Pros: High throughput, message replay, multiple consumer groups, 
+  built-in partitioning for scale, great for event sourcing
+- Cons: More complex to operate, needs Zookeeper (or KRaft)
+
+AWS SQS:
+- Pros: Zero ops, managed service, scales automatically
+- Cons: No message ordering guarantee (standard queue), 
+  vendor lock-in, max message size 256KB
+
+Priya Nair (Aug 17):
+Leaning toward Kafka. The replay capability alone is worth it — 
+we can debug production issues by replaying events. Also, when we 
+add notification-service later, Kafka's pub-sub model handles it 
+naturally without changing existing consumers.
+
+Arjun Patel (Aug 17):
+Kafka ops concern is valid but manageable. We'll use Docker Compose 
+locally and AWS MSK in production. MSK handles most of the 
+operational burden.
+
+Decision: Kafka selected. Implementation in PR #12.

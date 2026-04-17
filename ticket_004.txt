@@ -1,0 +1,35 @@
+Ticket: SHOP-178
+Title: Handle Stripe webhook failures gracefully
+Type: Bug
+Status: Done
+Sprint: Sprint 9
+Assignee: Karan Joshi
+Date: 2025-11-28
+
+Description:
+On Nov 25, Stripe sent payment confirmation webhooks but our 
+endpoint was down for 3 minutes during deployment. 47 orders 
+stuck in PAYMENT_PENDING state. Had to manually check each one.
+
+Comments:
+
+Karan Joshi (Nov 28):
+Root cause: During deployment, there's a 30-second window where 
+the old container is stopped and new one isn't ready yet. Stripe 
+webhooks during this window get a 503 and Stripe retries, but with 
+increasing delays (1min, 5min, 30min, 2hr). Some orders waited 
+hours to resolve.
+
+Rahul Sharma (Nov 29):
+Two fixes needed:
+1. Blue-green deployment to eliminate downtime (Arjun's working on this)
+2. Reconciliation job that checks for stuck orders and proactively 
+   queries Stripe API
+
+Karan Joshi (Dec 1):
+Implemented reconciliation job. Runs every 15 minutes. Finds orders 
+in PAYMENT_PENDING for more than 10 minutes, queries Stripe API 
+for actual payment status, and updates accordingly. See PR #55.
+
+Resolution: Reconciliation job deployed. Blue-green deployment 
+coming in PR #58.

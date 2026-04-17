@@ -1,0 +1,46 @@
+Ticket: SHOP-134
+Title: Decide on caching strategy for product catalog
+Type: Spike
+Status: Done
+Sprint: Sprint 5
+Assignee: Rahul Sharma
+Date: 2025-09-01
+
+Description:
+Product catalog page is slow. Every page load hits the database. 
+Need caching layer.
+
+Comments:
+
+Rahul Sharma (Sep 1):
+Options evaluated:
+1. Spring Cache with Caffeine (in-memory, per instance)
+2. Redis (shared across instances)
+3. CDN caching at API gateway level
+
+Going with Redis because:
+- Shared cache across all service instances
+- When one instance fetches data, all instances benefit
+- Can use for other things too (rate limiting, sessions)
+- Caffeine would duplicate data across every instance
+
+CDN caching is good for static content but our product data 
+changes when inventory updates. Would need cache invalidation 
+at CDN level which is complex.
+
+Cache strategy: Cache-aside pattern.
+- Read: check Redis first, if miss then query DB and populate Redis
+- Write: delete Redis key, let next read repopulate
+- TTL: 5 min for products, 30 sec for inventory counts
+
+Priya Nair (Sep 2):
+Why not write-through? Then cache is always up to date.
+
+Rahul Sharma (Sep 2):
+Write-through adds latency to every write operation (must write 
+to both DB and Redis). For our inventory updates that happen 
+hundreds of times during flash sales, this adds unnecessary 
+overhead. Cache-aside with short TTL gives us 95% of the benefit 
+with zero write overhead.
+
+Decision: Redis with cache-aside pattern. See PR #38.

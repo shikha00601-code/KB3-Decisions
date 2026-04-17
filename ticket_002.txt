@@ -1,0 +1,35 @@
+Ticket: SHOP-145
+Title: Choose between REST and GraphQL for frontend API
+Type: Spike
+Status: Done
+Sprint: Sprint 7
+Assignee: Karan Joshi
+Date: 2025-10-20
+
+Description:
+Mobile team is complaining about over-fetching. They need order + items + 
+payment in one call. Evaluate adding GraphQL.
+
+Comments:
+
+Karan Joshi (Oct 21):
+The mobile app currently makes 3 REST calls to show order details:
+1. GET /api/orders/{id} — order metadata
+2. GET /api/orders/{id}/items — line items
+3. GET /api/payments?orderId={id} — payment status
+
+This causes noticeable loading time on slow connections. With GraphQL, 
+one query fetches everything.
+
+Rahul Sharma (Oct 22):
+I'm fine adding GraphQL but let's not replace REST. Most of our 
+internal service-to-service calls use REST and that works well. 
+GraphQL should be a supplementary option for the frontend/mobile team.
+
+Priya Nair (Oct 22):
+Agreed. REST stays as the primary API. GraphQL at /graphql for 
+frontend use cases where they need flexible queries. This way 
+we don't have to rewrite our existing API docs and client libraries.
+
+Decision: Add GraphQL alongside REST. REST remains primary. 
+GraphQL for frontend-specific use cases only. See PR #48.
